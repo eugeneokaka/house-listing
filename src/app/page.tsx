@@ -77,9 +77,9 @@ export default function Home() {
               >
                 {/* Image Container */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
-                  {listing.imageUrl ? (
+                  {listing.imageUrls && listing.imageUrls.length > 0 ? (
                     <Image
-                      src={listing.imageUrl}
+                      src={listing.imageUrls[0]!}
                       alt={listing.title}
                       fill
                       unoptimized

@@ -74,18 +74,23 @@ export default function ListingDetailPage() {
         </div>
 
         {/* Gallery Section */}
-        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] bg-gray-100 rounded-3xl overflow-hidden shadow-lg mb-12">
-            {listing.imageUrl ? (
-                <Image
-                    src={listing.imageUrl}
-                    alt={listing.title}
-                    fill
-                    className="object-cover"
-                    priority
-                    unoptimized
-                />
+        {/* Gallery Section - Grid of Images */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+            {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                listing.imageUrls.map((url, index) => (
+                    <div key={index} className={`relative w-full ${index === 0 ? 'col-span-1 md:col-span-2 aspect-[16/9]' : 'aspect-[4/3]'} bg-gray-100 rounded-3xl overflow-hidden shadow-lg`}>
+                        <Image
+                            src={url!}
+                            alt={`${listing.title} - Image ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                            unoptimized
+                        />
+                    </div>
+                ))
             ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <div className="col-span-1 md:col-span-2 relative w-full aspect-[16/9] bg-gray-100 rounded-3xl overflow-hidden shadow-lg flex items-center justify-center text-gray-400">
                     No Image Available
                 </div>
             )}

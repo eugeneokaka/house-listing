@@ -16,7 +16,7 @@ export const createListing = mutation({
     bedrooms: v.number(),
     bathrooms: v.number(),
     type: v.union(v.literal("sell"), v.literal("rent"), v.literal("bnb")),
-    storageId: v.id("_storage"),
+    images: v.array(v.id("_storage")),
     userId: v.id("users"), // We pass the internal Convex User ID
   },
   handler: async (ctx, args) => {
@@ -36,10 +36,16 @@ export const list = query({
     
     // Map over listings to generate the image URL
     return await Promise.all(
-      listings.map(async (listing) => ({
-        ...listing,
-        imageUrl: await ctx.storage.getUrl(listing.storageId),
-      }))
+      listings.map(async (listing) => {
+        const images = listing.images || (listing.storageId ? [listing.storageId] : []);
+        const imageUrls = await Promise.all(
+          images.map((storageId) => ctx.storage.getUrl(storageId))
+        );
+        return {
+          ...listing,
+          imageUrls,
+        };
+      })
     );
   },
 });
@@ -51,13 +57,13 @@ export const getListing = query({
     if (!listing) {
       return null;
     }
-    let imageUrl = null;
-    if (listing.storageId) {
-      imageUrl = await ctx.storage.getUrl(listing.storageId);
-    }
+    const images = listing.images || (listing.storageId ? [listing.storageId] : []);
+    const imageUrls = await Promise.all(
+      images.map((storageId) => ctx.storage.getUrl(storageId))
+    );
     return {
       ...listing,
-      imageUrl,
+      imageUrls,
     };
   },
 });

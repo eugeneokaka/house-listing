@@ -20,7 +20,7 @@ export default function CreateListingPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const imageInput = useRef<HTMLInputElement>(null);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -38,28 +38,40 @@ export default function CreateListingPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedImages(Array.from(e.target.files));
+    }
+  };
+
   const djangoUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedImage || !convexUser) return;
+    if (selectedImages.length === 0 || !convexUser) return;
 
     setIsLoading(true);
 
     try {
-      // 1. Get the upload URL
-      const postUrl = await generateUploadUrl();
+      // Upload all images in parallel
+      const uploadPromises = selectedImages.map(async (image) => {
+        // 1. Get the upload URL
+        const postUrl = await generateUploadUrl();
 
-      // 2. Upload the file
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": selectedImage.type },
-        body: selectedImage,
+        // 2. Upload the file
+        const result = await fetch(postUrl, {
+          method: "POST",
+          headers: { "Content-Type": image.type },
+          body: image,
+        });
+
+        if (!result.ok) throw new Error(`Upload failed for ${image.name}`);
+
+        const { storageId } = await result.json();
+        return storageId;
       });
 
-      if (!result.ok) throw new Error("Upload failed");
+      const storageIds = await Promise.all(uploadPromises);
 
-      const { storageId } = await result.json();
-
-      // 3. Save the listing with the storage ID
+      // 3. Save the listing with the storage IDs
       await createListing({
         title: formData.title,
         description: formData.description,
@@ -68,7 +80,7 @@ export default function CreateListingPage() {
         bedrooms: Number(formData.bedrooms),
         bathrooms: Number(formData.bathrooms),
         type: formData.type as "sell" | "rent" | "bnb",
-        storageId,
+        images: storageIds,
         userId: convexUser._id, 
       });
 
@@ -223,11 +235,11 @@ export default function CreateListingPage() {
             {/* Image Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                Property Image
+                Property Images
               </label>
               <div 
                 className={`mt-1 flex justify-center rounded-md border-2 border-dashed px-6 pt-5 pb-6 transition-colors ${
-                  selectedImage ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600'
+                  selectedImages.length > 0 ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-300 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-600'
                 }`}
               >
                 <div className="space-y-1 text-center">
@@ -250,7 +262,7 @@ export default function CreateListingPage() {
                       htmlFor="file-upload"
                       className="relative cursor-pointer rounded-md font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
                     >
-                      <span>Upload a file</span>
+                      <span>Upload files</span>
                       <input
                         id="file-upload"
                         name="file-upload"
@@ -258,13 +270,14 @@ export default function CreateListingPage() {
                         className="sr-only"
                         ref={imageInput}
                         accept="image/*"
-                        onChange={(event) => setSelectedImage(event.target.files ? event.target.files[0] : null)}
+                        multiple
+                        onChange={handleImageSelect}
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {selectedImage ? selectedImage.name : "PNG, JPG, GIF up to 10MB"}
+                    {selectedImages.length > 0 ? `${selectedImages.length} files selected` : "PNG, JPG, GIF up to 10MB"}
                   </p>
                 </div>
               </div>
@@ -274,7 +287,7 @@ export default function CreateListingPage() {
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={isLoading || !selectedImage || !convexUser}
+                disabled={isLoading || selectedImages.length === 0 || !convexUser}
                 className={`flex w-full justify-center rounded-full border border-transparent py-3 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
                   isLoading
                     ? "bg-gray-400 cursor-not-allowed"
