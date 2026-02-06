@@ -68,7 +68,7 @@ export default function ListingDetailPage() {
                 </div>
             </div>
             <div className="text-left md:text-right">
-                <div className="text-4xl font-bold text-gray-900">${listing.price.toLocaleString()}</div>
+                <div className="text-4xl font-bold text-gray-900">KSh {listing.price.toLocaleString()}</div>
                 <div className="text-gray-500 font-medium capitalize">{listing.type}</div>
             </div>
         </div>

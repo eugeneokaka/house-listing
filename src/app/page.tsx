@@ -94,7 +94,7 @@ export default function Home() {
                     {listing.type || "Sell"}
                   </div>
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-black shadow-sm">
-                    ${listing.price.toLocaleString()}
+                    KSh {listing.price.toLocaleString()}
                   </div>
                 </div>
 
