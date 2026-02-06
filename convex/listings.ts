@@ -28,11 +28,37 @@ export const createListing = mutation({
   },
 });
 
-// 3. List all listings with image URLs
+// 3. List all listings with image URLs (supports search and filtering)
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
-    const listings = await ctx.db.query("listings").collect();
+  args: {
+    search: v.optional(v.string()),
+    type: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let listings;
+
+    if (args.search) {
+      // Search with text
+      listings = await ctx.db
+        .query("listings")
+        .withSearchIndex("search_title", (q) => {
+          let searchBuilder = q.search("title", args.search!);
+          if (args.type) {
+            searchBuilder = searchBuilder.eq("type", args.type as "sell" | "rent" | "bnb");
+          }
+          return searchBuilder;
+        })
+        .collect();
+    } else if (args.type) {
+      // Filter by type only
+      listings = await ctx.db
+        .query("listings")
+        .filter((q) => q.eq(q.field("type"), args.type))
+        .collect();
+    } else {
+      // Get all
+      listings = await ctx.db.query("listings").collect();
+    }
     
     // Map over listings to generate the image URL
     return await Promise.all(

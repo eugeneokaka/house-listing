@@ -22,5 +22,9 @@ export default defineSchema({
     storageId: v.optional(v.id("_storage")),
     userId: v.id("users"),       // Relationship: Foreign key to users table
     createdAt: v.number(),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["type"],
+    }),
 });

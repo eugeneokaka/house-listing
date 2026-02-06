@@ -5,8 +5,16 @@ import { api } from "../../convex/_generated/api";
 import Image from "next/image";
 import Link from "next/link";
 
+import { useState } from "react";
+
 export default function Home() {
-  const listings = useQuery(api.listings.list);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<"sell" | "rent" | "bnb" | undefined>(undefined);
+
+  const listings = useQuery(api.listings.list, { 
+    search: searchQuery === "" ? undefined : searchQuery,
+    type: selectedType
+  });
 
   return (
     <div className="min-h-screen bg-white text-black transition-colors duration-300">
@@ -30,12 +38,28 @@ export default function Home() {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-11 pr-4 py-4 bg-white border border-gray-200 rounded-full text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent shadow-lg transition-shadow group-hover:shadow-xl"
-              placeholder="Search by city, neighborhood, or address..."
+              placeholder="Search by title..."
             />
-             <button className="absolute right-2 top-2 bottom-2 bg-black text-white px-6 rounded-full text-sm font-medium hover:bg-zinc-800 transition-colors">
-              Search
-            </button>
+          </div>
+
+          {/* Filter Categories */}
+          <div className="flex justify-center gap-3 mt-6">
+             {(["all", "sell", "rent", "bnb"] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedType(type === "all" ? undefined : type)}
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                    (type === "all" && !selectedType) || selectedType === type
+                      ? "bg-black text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+             ))}
           </div>
         </div>
       </section>
