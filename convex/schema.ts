@@ -21,6 +21,7 @@ export default defineSchema({
     images: v.optional(v.array(v.id("_storage"))),
     storageId: v.optional(v.id("_storage")),
     userId: v.id("users"),       // Relationship: Foreign key to users table
+    phone: v.optional(v.string()), // Add phone field (optional for compatibility)
     createdAt: v.number(),
   }).index("by_user", ["userId"])
     .searchIndex("search_title", {

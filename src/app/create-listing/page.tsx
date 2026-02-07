@@ -31,6 +31,7 @@ export default function CreateListingPage() {
     bedrooms: "",
     bathrooms: "",
     type: "sell",
+    phone: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -81,6 +82,7 @@ export default function CreateListingPage() {
         bathrooms: Number(formData.bathrooms),
         type: formData.type as "sell" | "rent" | "bnb",
         images: storageIds,
+        phone: formData.phone,
         userId: convexUser._id, 
       });
 
@@ -230,6 +232,23 @@ export default function CreateListingPage() {
                   placeholder="2"
                 />
               </div>
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                placeholder="+1 (555) 123-4567"
+              />
             </div>
 
             {/* Image Upload */}

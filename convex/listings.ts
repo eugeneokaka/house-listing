@@ -17,6 +17,7 @@ export const createListing = mutation({
     bathrooms: v.number(),
     type: v.union(v.literal("sell"), v.literal("rent"), v.literal("bnb")),
     images: v.array(v.id("_storage")),
+    phone: v.string(),
     userId: v.id("users"), // We pass the internal Convex User ID
   },
   handler: async (ctx, args) => {
